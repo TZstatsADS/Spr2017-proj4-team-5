@@ -5,7 +5,7 @@
 Term: Spring 2017
 
 + Team #5
-+ Projec title: Lorem ipsum dolor sit amet
++ Projec title: 2 Naive Bayes/5 C/E/Mc
 + Team members
 	+ Arun, Vikas va2298@columbia.edu
 	+ Han, Ke kh2793@columbia.edu
