@@ -200,8 +200,6 @@ for(i in 1:num.paper){
 df<-data.frame(auther.id)
 
 num.coauther<-length(coauther)
-indicator<-NULL
-
 
 get.coauther<-function(i){
      coauthers<-rep(0,num.coauther)
@@ -222,10 +220,6 @@ df<-cbind(auther.id,id_co)
 #df contains the auther coauther information in nameset 1: AGupta
 
 
-```
-
-
-```{r}
 ##################################
 #### probability calculation######
 ##################################
@@ -234,62 +228,99 @@ df<-as.data.frame(cbind(id.num.co,df))
 freq.id<-as.data.frame(table(df$auther.id)/length(df$auther.id)) 
 # numbers of paper for each id
 colnames(freq.id)<-c("auther.id","Freq")
+num.id<-dim(freq.id)[1]
 
+###################################
+#########get.prob function#########
+###################################
 get.prob<-function(j){
   # Input: auther.id: j
   # Output: P(A|X)
-  j=12
   data <- df[df$auther.id==j,]
   paper.num<-dim(data)[1]
-  
-  # flag <- ifelse(data$id.num.co==0,1,0)
   p_0<-sum(data$id.num.co==0)/paper.num  
   # p_0:  P(N|X)
   p_1<-1-p_0  
   # p_1:  P(Co|X)
   data.with.co<-data[(data$id.num.co==0)==0,] # keep the data for auther that has coauther
   num.with.co<-dim(data.with.co)[1]
+  
 ################################
 ######find identical function###
 ################################
   find.identical<-function(i){
-   # i=38
+   # Input: i-th entry of one auther j
     index<-NULL
     for(m in 1:dim(data.with.co)[1]){
      index[m]<-sum(data.with.co[i,-c(1,2)] != data.with.co[m,-c(1,2)])==0
     }
-    
-    if( sum(index) == 0){
-        p_s_1<-sum(index)/dim(data.with.co)[1] #Seen
-        return( list( p_s_1 = p_s_1,
-                     p_s_0 = 1-p_s_1))
-        }else{p_s_0<-sum(index)/dim(data.with.co)[1]  # Unseen
-              return( list( p_s_0 = p_s_0,
-                            p_s_1 = 1-p_s_0))
-              }
-     }
+    label<-ifelse((sum(index) == 1),FALSE,TRUE)
+    return(label)
+  }
   
-# find.identical(38)
-
-prob.seen<-NULL
+seen<-NULL
 for(l in 1:num.with.co){
-  prob.seen[l]<- list(find.identical(l))
+ seen[l]<- find.identical(l)
 }
+data.seen<-data.with.co[seen==TRUE,]
+data.unseen<-data.with.co[seen==FALSE,]
 
-# prob.seen 
+p_s_cx<-dim(data.seen)[1]/num.with.co
+p_u_cx<-1-p_s_cx
 
 colsum<-as.matrix(apply(data.with.co,2,sum))
-total.num.co<-colsum[1,1]
+total.num.co<-dim(data)[1]
 p_a_scx<-colsum/total.num.co    #### P(A|Seen,Co,X)
 p_a_scx<-p_a_scx[-c(1,2),]
 p_a_ucx<-1/(num.coauther -total.num.co)  #### P(A|Unseen,Co,X)
 
+outcome<-list(P.N.X = p_0,
+              P.Co.X = p_1,
+              P.S.Co.X = p_s_cx,
+              P.U.Co.X = p_u_cx,
+              P.Ak.S.Co.X = p_a_scx,
+              P.Ak.U.Co.X = p_a_ucx
+              )
+
+return(outcome)
+}
+# get.prob function end
+
+
+# para<-list(P.N.X = NULL,
+#               P.Co.X = NULL,
+#               P.S.Co.X = NULL,
+#               P.U.Co.X = NULL,
+#               P.Ak.S.Co.X = NULL,
+#               P.Ak.U.Co.X = NULL)
+para<-NULL
+for(i in seq(num.id)){
+  para[i]<-list(get.prob(i))
+}
+para
+
+```
+
+
+
+
+
+
+
+```{r}
+
+
+###########test sum of prob##################
 p_Ak_X<-NULL
 for(k in 1:paper.num){
 p_Ak_X[k]<-p_1*(p_a_scx[k] * prob.seen[[k]]$p_s_1 + p_a_ucx * prob.seen[[k]]$p_s_0)
 }
-p_Ak_X
+prod(p_Ak_X)
 
+
+target<-function(i){
+    ln.p.cx<-log(get.prob(i))+log(freq.id[i,2])
+    return(ln.p.cx)
 }
 
 ```
