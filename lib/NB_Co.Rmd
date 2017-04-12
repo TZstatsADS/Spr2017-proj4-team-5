@@ -113,22 +113,28 @@ for(i in 1:length(data.files)){
 
 ```{r}
 
-#get.info<-function(n){
-  # Input: n-the nameset
-n=2   
+get.info<-function(n){
+# Input: n-the nameset
+# n = 3
 num.paper<-length(data_list[[n]])
 auther.id<-NULL
 coauther<-NULL
 for(i in 1:num.paper){
-   auther.id[i]<-data_list[[1]][[i]][[1]]
-   coauther<-unique(c(coauther,data_list[[1]][[i]][[3]]))
+   auther.id[i]<-data_list[[n]][[i]][[1]]
+   coauther<-unique(c(coauther,data_list[[n]][[i]][[3]]))
 }
+a.i<-factor(auther.id)
+uni.auther<-length(levels(a.i))
+levels(a.i)<-seq(uni.auther)
+auther.id<-a.i
+#df<-as.data.frame(a.i)
 df<-data.frame(auther.id)
+
 num.coauther<-length(coauther)
 get.coauther<-function(i){
      coauthers<-rep(0,num.coauther)
-     for(j in 1:length(data_list[[1]][[i]][[3]])){
-     coauthers[which(data_list[[1]][[i]][[3]][j]==coauther)]<- 1
+     for(j in 1:length(data_list[[n]][[i]][[3]])){
+     coauthers[which(data_list[[n]][[i]][[3]][j]==coauther)]<- 1
 }
 return(coauthers) 
 }
@@ -159,6 +165,11 @@ set.seed(index[s])
 
 sample_split<-function(i){
   
+  
+  
+  
+  
+
 Data<- df[df$auther.id==i,]
 bound <- floor(nrow(Data)/2)  #define % of training and test set
 Data <- Data[sample(nrow(Data)), ]           #sample rows 
@@ -281,6 +292,8 @@ est_y<-apply(test_x,1,NB_model) ## test estimate
 
 accuracy[s]<-sum(est_y==test_y)/length(test_y)
 }
+
+
 end.time <- Sys.time() 
 time_sclust <- end.time - start.time
 time_sclust
@@ -288,225 +301,17 @@ time_sclust
 
 mean(accuracy)
 sd(accuracy)
-conclusion<-paste0("Mean of Accuracy for Nameset ",n," is:",mean(accuracy),
-                   "SrdDev of Accuracy for Nameset ",n,"is:",sd(accuracy),
-                   "Time for Nameset",n,"to process is",time_sclust)
-#return(conclusion)
-#}
+conclusion<-cat("Mean of Accuracy for Nameset ",n," is:",mean(accuracy),"\nSrdDev of Accuracy for Nameset  ",n," is:",sd(accuracy),"\nTime for Nameset  ",n," to process is",time_sclust)
+return(conclusion)
+}
 
-# conclusion<-NULL
-# 
-# for(i in 1:length(data.files)){
-# conclusion[i]<-get.info(i)
-# }
-conclusion
+conclusion<-NULL
+
+for(i in 1:length(data.files)){
+conclusion[i]<-get.info(i)
+}
 ```
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###This is the final version for Nameset 1
-
-
-```{r}
-# Nameset AGupta
-
-#get.info<-function(n){
-  # Input: n-the nameset
-num.paper<-length(data_list[[1]])
-auther.id<-NULL
-coauther<-NULL
-for(i in 1:num.paper){
-   auther.id[i]<-data_list[[1]][[i]][[1]]
-   coauther<-unique(c(coauther,data_list[[1]][[i]][[3]]))
-}
-df<-data.frame(auther.id)
-num.coauther<-length(coauther)
-get.coauther<-function(i){
-     coauthers<-rep(0,num.coauther)
-     for(j in 1:length(data_list[[1]][[i]][[3]])){
-     coauthers[which(data_list[[1]][[i]][[3]][j]==coauther)]<- 1
-}
-return(coauthers) 
-}
-##########################################################
-#### build dataframe for auther coauther information######
-##########################################################
-id_co<-NULL
-for(i in 1:num.paper){
-  id_co<-rbind(id_co,get.coauther(i))
-}
-colnames(id_co)<-coauther
-df<-cbind(auther.id,id_co) 
-#df contains the auther coauther information in nameset 1: AGupta
-id.num.co<-apply(df[,-1],1,sum)
-df<-as.data.frame(cbind(id.num.co,df))
-freq.id<-as.data.frame(table(df$auther.id)/length(df$auther.id)) 
-# numbers of paper for each id
-colnames(freq.id)<-c("auther.id","Freq")
-num.id<-dim(freq.id)[1]
-
-start.time <- Sys.time()
-accuracy<-NULL
-
-for(s in 1:10){
-index<-c(2017,29,666,1024,38,97,10001,88,494,10)
-set.seed(index[s])
-
-
-sample_split<-function(i){
-  
-Data<- df[df$auther.id==i,]
-bound <- floor(nrow(Data)/2)  #define % of training and test set
-Data <- Data[sample(nrow(Data)), ]           #sample rows 
-df.train <- Data[1:bound, ]              #get training set
-df.test <- Data[(bound+1):nrow(Data), ]    #get test set
-
-return(list(df.train=df.train,df.test=df.test))
-}
-
-train<-NULL
-test<-NULL
-for(i in seq(num.id)){
-  train[i]<-list(sample_split(i)[[1]])
-  test[i]<-list(sample_split(i)[[2]])
-} 
-
-TT<-NULL
-for(i in 1:num.id){
-  TT <- rbind(TT,test[[i]])
-}
-test_x<-TT[,-c(1,2)]  # test set as data.frame
-test_y<-TT[,2]        # test lable 
-
-NB_para<-function(data){
-  # Input: df.train 
-  # Output: 6 probability used for NB model
-  
-  paper.num<-dim(data)[1]
-  p_0<-sum(data$id.num.co==0)/paper.num  
-  #### P(N|X)
-  p_1<-1-p_0  
-  #### P(Co|x)
-  colsum<-apply(data,2,sum)
-  data<-rbind(data,colsum)
-  p_s_cx<-sum(colsum>=2)/sum(colsum>=1)
-  #### P(Seen|Co,X)
-  p_u_cx<-1-p_s_cx
-  #### P(Unseen|Co,X)
-  total.num.co<-colsum[1]
-  p_a_scx<-colsum/total.num.co    
-  p_a_scx<-p_a_scx[-c(1,2)]             
-  #### P(A|Seen,Co,X)
-  p_a_ucx<-1/(num.coauther -sum(colsum>=1))  
-  #### P(A|Unseen,Co,X)
-  outcome<-list(P.N.X = p_0,
-                P.Co.X = p_1,
-                P.S.Co.X = p_s_cx,
-                P.U.Co.X = p_u_cx,
-                P.Ak.S.Co.X = p_a_scx,
-                P.Ak.U.Co.X = p_a_ucx
-                )
-  return(outcome)
-}
-
-P.N.X<-NULL
-P.Co.X <-NULL
-P.S.Co.X<-NULL
-P.U.Co.X<-NULL
-P.Ak.S.Co.X<-NULL
-P.Ak.U.Co.X<-NULL
-for(i in seq(num.id)){
-  P.N.X[i]<-NB_para(train[[i]])$P.N.X
-  P.Co.X[i]<-NB_para(train[[i]])$P.Co.X
-  P.S.Co.X[i]<-NB_para(train[[i]])$P.S.Co.X
-  P.U.Co.X[i]<-NB_para(train[[i]])$P.U.Co.X
-  P.Ak.U.Co.X[i]<-NB_para(train[[i]])$P.Ak.U.Co.X
-  P.Ak.S.Co.X[i]<-list(NB_para(train[[i]])$P.Ak.S.Co.X)
-}
-
-###############################
-######### Test Model###########
-###############################
-
-freq.x<-NULL
-for(i in seq(num.id)){
-  freq.x[i]<-dim(train[[i]])[1]  
-  }
-px<-freq.x/sum(freq.x)
-########### px is the prior for the nameset#####
-
-
-#######################
-##estimation model#####
-#######################
-NB_model<-function(data){
-  # input: Test datafram
-  # data.df=test_x
-  # out<-NULL
-  # for(m in seq(dim(data.df)[1])){
-  # data = data.df[m,]
-  if(sum(data)==0){
-    out<-which.max(P.N.X)
-    }
-  else{
-  condition<-function(id){
-             i=id
-             # i=id, k = k-th coauther
-             P_Ak_X<-NULL
-  
-             significant<-length(P.Ak.S.Co.X[[i]][data>0])
-            
-              for(k in seq(significant)){
-                                   P_Ak_X[k]<-P.Co.X[i] * ( P.S.Co.X[i] *       
-                                    P.Ak.S.Co.X[[i]][data>0][k] + 
-                                      P.Ak.U.Co.X[i] * P.U.Co.X[i])
-                                      }
-   return(prod(P_Ak_X))
-}
-   target<-NULL
-   for(i in seq(num.id)){ 
-     target[i]<-condition(i)*px[i]
-   }
-   
-  out <-which.max(target)
-  }
-   return(out)
-}
-
-est_y<-apply(test_x,1,NB_model) ## test estimate
-
-accuracy[s]<-sum(est_y==test_y)/length(test_y)
-}
-end.time <- Sys.time() 
-time_sclust <- end.time - start.time
-time_sclust
-
-
-mean(accuracy)
-sd(accuracy)
-cat("Mean of Accuracy for Nameset 1 is:",mean(accuracy),"\nSrdDev of Accuracy for Nameset 2 is:",sd(accuracy),"\nTime for Nameset 1 to process is",time_sclust)
-#return(conclusion)
-#}
-
-# conclusion<-NULL
-# 
-# for(i in 1:length(data.files)){
-# conclusion[i]<-get.info(i)
-# }
-
-```
