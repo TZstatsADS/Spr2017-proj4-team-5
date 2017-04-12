@@ -1,0 +1,142 @@
+---
+title: "Paper5"
+author: "KE HAN kh2793"
+date: "April 10, 2017"
+output: html_document
+---
+# Step 0: Load the packages, specify directories
+
+```{r}
+#setwd("........")
+```
+
+## Step 1: Load and process the data
+
+```{r}
+# adjusteded from the main file in class
+AKumar <- data.frame(scan("../data/nameset/AKumar.txt", what = list(Coauthor = "", Paper = "", Journal = ""),
+sep=">", quiet=TRUE),stringsAsFactors=FALSE) # This need to be modified for different name set
+# extract canonical author id befor "_"
+AKumar$AuthorID <- sub("_.*","",AKumar$Coauthor)
+# extract paper number under same author between "_" and first whitespace AKumar$PaperNO <- sub(".*_(\\w*)\\s.*", "\\1", AKumar$Coauthor)
+# delete "<" in AKumar$Coauthor, you may need to further process the coauthor
+# term depending on the method you are using
+AKumar$Coauthor <- gsub("<","",sub("^.*?\\s","", AKumar$Coauthor))
+# delete "<" in AKumar$Paper
+AKumar$Paper <- gsub("<","",AKumar$Paper)
+# add PaperID for furthur use, you may want to combine all the nameset files and # then assign the unique ID for all the citations
+AKumar$PaperID <- rownames(AKumar)
+```
+
+```{r}
+JMartin<- data.frame(scan("../data/nameset/JMartin.txt", what = list(Coauthor = "", Paper = "", Journal = ""),
+sep=">", quiet=TRUE),stringsAsFactors=FALSE) 
+JMartin$AuthorID <- sub("_.*","",JMartin$Coauthor)
+JMartin$Coauthor <- gsub("<","",sub("^.*?\\s","", JMartin$Coauthor))
+JMartin$Paper <- gsub("<","",JMartin$Paper)
+JMartin$PaperID <- rownames(JMartin)
+```
+
+
+## Step 2: Clusterwise Scoring Function
+
+```{r}
+# similar to cost function, but we want to maximize this
+# the score would represent the accuracy of the training we get
+# each iteration would tell a better result, since it is greedy algorithm and focused on mistaken part
+sf=function(x,y){
+  sum=0
+  for(i in unique(y)){
+    sum=sum+ sum(x==i)/length(x)# wrong?
+  }
+  return (sum)
+}
+```
+
+
+## Step 3: Error-driven Online Training
+
+```{r}
+# the method is about how to choose the next sample to put into training
+start.time <- Sys.time()
+# run the algorithm which would predict the authorID class
+end.time <- Sys.time()
+time_sclust <- end.time - start.time
+time_sclust
+```
+
+
+## Step 4: Ranking MIRA
+
+```{r}
+# MIRA(Margin Infused Relaxed Algorithm) is the algorithm which focused on mistaken part and focused on 
+#define some basics about this project, for example, the 
+legalLabels=unique(trainLabels)
+c = 0.001
+max_iterations=100
+train_c=function(c){
+    # reset the weights 
+    for (iteration in range(self.max_iterations)){
+                for (i in seq(1,length(trainLabels))){
+                  features=trainData[i,]
+                  y=trainLabels[i]
+                  y_p = classify(features)[0]
+                  if(y!=y_p){
+                    tau = min(c,((weights[y_p] - weights[y]) * features + 1.)/ (2 * (features * features))   )
+                    delta = features
+                    delta[key] = value * tau
+                    weights[y] =weights[y]+ delta
+                    weights[y_p] = weights[y_p]-delta
+                  }
+                }
+    }
+   weights[c] = weight
+   return (for (y_p in cbind(validationLabels,classify(validationData))  ) {sum(y == y_p) }     )
+}
+
+
+mira=function(trainLabels,trainData){
+  Cgrid = seq(0.002, 0.004, 0.008)
+  
+  weights=c()
+  
+  c_scores=c()
+  c_scores = for (c in Cgrid){
+    c_scores=cbind(c_scores,train_c(c))
+}
+  
+  max_c=Cgrid[0]
+  max_c_score=-1
+        for(c in Cgrid){
+          for(c_score in c_scores){
+            if ((c_score > max_c_score)|| (c_score == max_c_score && c < max_c)){
+              max_c=c
+              max_c_score=c_score
+            }
+              
+          }
+        } 
+        weight = weights[max_c]
+        C = max_c
+        return (max_c)
+}
+
+classify=function(data ){
+  guesses = c()
+  for (datum in data){
+    vectors = util.Counter()
+    for (l in legalLabels){
+      vectors[l] = weights[l] * datum
+      guesses=cbind(guess,(max(vectors)))
+    }
+  return (guesses) 
+  }
+}
+```
+
+
+## Step 5: Evaluation
+
+Do the similar table to calculate the F score, precision, recall, accuracy and also the run time analysis.
+
+
