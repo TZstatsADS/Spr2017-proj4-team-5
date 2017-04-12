@@ -1,8 +1,10 @@
 ---
 title: "NB_Co"
 author: "yt2547"
-date: "2017Äê4ÔÂ11ÈÕ"
-output: html_document
+date: "2017å¹<b4>4æœ<88>11æ—<a5>"
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r}
@@ -115,7 +117,13 @@ for(i in 1:length(data.files)){
 
 get.info<-function(n){
 # Input: n-the nameset
-# n = 3
+# For each nameset, randomly split the data into train and test set equally.
+# Use train set to train the parameters needed for Naive Bayesian Classify based on Coauther.
+# Use Test set to predict the estimation and calculate the accuracy of Naive Bayesian based on Coauther.
+# 
+# Repeat the above process ten times for each nameset to get the mean accuracy and standard deviation of accuracy.  
+#  
+# 
 num.paper<-length(data_list[[n]])
 auther.id<-NULL
 coauther<-NULL
@@ -127,7 +135,6 @@ a.i<-factor(auther.id)
 uni.auther<-length(levels(a.i))
 levels(a.i)<-seq(uni.auther)
 auther.id<-a.i
-#df<-as.data.frame(a.i)
 df<-data.frame(auther.id)
 
 num.coauther<-length(coauther)
@@ -161,22 +168,18 @@ accuracy<-NULL
 for(s in 1:10){
 index<-c(2017,29,666,1024,38,97,10001,88,494,10)
 set.seed(index[s])
-
+################################
+####### Train Test set split####
+################################
 
 sample_split<-function(i){
   
-  
-  
-  
-  
-
-Data<- df[df$auther.id==i,]
-bound <- floor(nrow(Data)/2)  #define % of training and test set
-Data <- Data[sample(nrow(Data)), ]           #sample rows 
-df.train <- Data[1:bound, ]              #get training set
-df.test <- Data[(bound+1):nrow(Data), ]    #get test set
-
-return(list(df.train=df.train,df.test=df.test))
+ Data<- df[df$auther.id==i,]
+ bound <- floor(nrow(Data)/2)  #define 50 % of training and test set
+ Data <- Data[sample(nrow(Data)), ]           #sample rows 
+ df.train <- Data[1:bound, ]              #get training set
+ df.test <- Data[(bound+1):nrow(Data), ]    #get test set
+ return(list(df.train=df.train,df.test=df.test))
 }
 
 train<-NULL
@@ -193,6 +196,11 @@ for(i in 1:num.id){
 test_x<-TT[,-c(1,2)]  # test set as data.frame
 test_y<-TT[,2]        # test lable 
 
+
+
+#############################
+#### Train the parameter#####
+#############################
 NB_para<-function(data){
   # Input: df.train 
   # Output: 6 probability used for NB model
@@ -247,8 +255,8 @@ freq.x<-NULL
 for(i in seq(num.id)){
   freq.x[i]<-dim(train[[i]])[1]  
   }
-px<-freq.x/sum(freq.x)
-########### px is the prior for the nameset#####
+px<-freq.x/sum(freq.x)  # px is the prior for the nameset
+
 
 
 #######################
@@ -287,17 +295,14 @@ NB_model<-function(data){
   }
    return(out)
 }
-
 est_y<-apply(test_x,1,NB_model) ## test estimate
 
 accuracy[s]<-sum(est_y==test_y)/length(test_y)
 }
 
-
 end.time <- Sys.time() 
 time_sclust <- end.time - start.time
 time_sclust
-
 
 mean(accuracy)
 sd(accuracy)
