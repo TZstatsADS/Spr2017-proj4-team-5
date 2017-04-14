@@ -226,7 +226,9 @@ Do the similar table to calculate the accrucy.
 ```{r}
 run=function(){
   res=c()
-  temp=c("df1.csv","df2.csv","df4.csv","df6.csv","df7.csv","df9.csv","df10.csv","df11.csv","df12.csv")
+  #set wd to get dfs
+
+  temp=c("df1.csv","df2.csv","df3.csv","df4.csv","df5.csv","df6.csv","df7.csv","df8.csv","df9.csv","df10.csv","df11.csv","df12.csv","df13.csv","df14.csv")
   for (i in 1:length(temp)) {
     df = read.csv(temp[i], header = TRUE)
     x=df[,-c(1,2)]
@@ -244,5 +246,7 @@ run=function(){
   }
  return (res)
 }
+run()
+
 ```
 
