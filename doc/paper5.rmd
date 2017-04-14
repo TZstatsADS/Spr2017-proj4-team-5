@@ -1,0 +1,213 @@
+---
+title: "paper5"
+output: html_document
+---
+
+## Step 0: Load the packages, specify directories
+
+```{r}
+#setwd("........")
+```
+
+## Step 1: Load and process the data
+
+```{r}
+# adjusteded from the main file in class
+AKumar <- data.frame(scan("../data/nameset/AKumar.txt", what = list(Coauthor = "", Paper = "", Journal = ""),
+sep=">", quiet=TRUE),stringsAsFactors=FALSE) # This need to be modified for different name set
+# extract canonical author id befor "_"
+AKumar$AuthorID <- sub("_.*","",AKumar$Coauthor)
+# extract paper number under same author between "_" and first whitespace AKumar$PaperNO <- sub(".*_(\\w*)\\s.*", "\\1", AKumar$Coauthor)
+# delete "<" in AKumar$Coauthor, you may need to further process the coauthor
+# term depending on the method you are using
+AKumar$Coauthor <- gsub("<","",sub("^.*?\\s","", AKumar$Coauthor))
+# delete "<" in AKumar$Paper
+AKumar$Paper <- gsub("<","",AKumar$Paper)
+# add PaperID for furthur use, you may want to combine all the nameset files and # then assign the unique ID for all the citations
+AKumar$PaperID <- rownames(AKumar)
+```
+
+```{r}
+#JMartin for example
+JMartin<- data.frame(scan("../data/nameset/JMartin.txt", what = list(Coauthor = "", Paper = "", Journal = ""),
+sep=">", quiet=TRUE),stringsAsFactors=FALSE) 
+JMartin$AuthorID <- sub("_.*","",JMartin$Coauthor)
+JMartin$Coauthor <- gsub("<","",sub("^.*?\\s","", JMartin$Coauthor))
+JMartin$Paper <- gsub("<","",JMartin$Paper)
+JMartin$PaperID <- rownames(JMartin)
+```
+
+```{r}
+# final version of data processing
+#similar with NB_CO
+# do not paste here, using same data_list
+```
+
+## Step 2: Clusterwise Scoring Function & Error-driven Online Training & Ranking MIRA
+
+```{r}
+# similar to cost function, but we want to maximize this
+# the score would represent the accuracy of the training we get
+# each iteration would tell a better result, since it is greedy algorithm and focused on mistaken part
+sf=function(x,y){
+  sum=0
+  for(i in unique(y)){
+    sum=sum+ sum(x==i)/length(x)# wrong?
+  }
+  return (sum)
+}
+
+# runtime
+start.time <- Sys.time()
+# run the algorithm which would predict the authorID class
+end.time <- Sys.time()
+time_sclust <- end.time - start.time
+time_sclust
+```
+
+
+```{r}
+#low version of MIRA
+# MIRA(Margin Infused Relaxed Algorithm) is the algorithm which focused on mistaken part and focused on 
+#define some basics about this project, for example, the 
+legalLabels=unique(trainLabels)
+c = 0.001
+max_iterations=100
+train_c=function(c){
+    # reset the weights 
+    for (iteration in range(self.max_iterations)){
+                for (i in seq(1,length(trainLabels))){
+                  features=trainData[i,]
+                  y=trainLabels[i]
+                  y_p = classify(features)[0]
+                  if(y!=y_p){
+                    tau = min(c,((weights[y_p] - weights[y]) * features + 1.)/ (2 * (features * features))   )
+                    delta = features
+                    delta[key] = value * tau
+                    weights[y] =weights[y]+ delta
+                    weights[y_p] = weights[y_p]-delta
+                  }
+                }
+    }
+   weights[c] = weight
+   return (for (y_p in cbind(validationLabels,classify(validationData))  ) {sum(y == y_p) }     )
+}
+
+
+mira=function(trainLabels,trainData){
+  Cgrid = seq(0.002, 0.004, 0.008)
+  
+  weights=c()
+  
+  c_scores=c()
+  c_scores = for (c in Cgrid){
+    c_scores=cbind(c_scores,train_c(c))
+}
+  
+  max_c=Cgrid[0]
+  max_c_score=-1
+        for(c in Cgrid){
+          for(c_score in c_scores){
+            if ((c_score > max_c_score)|| (c_score == max_c_score && c < max_c)){
+              max_c=c
+              max_c_score=c_score
+            }
+              
+          }
+        } 
+        weight = weights[max_c]
+        C = max_c
+        return (max_c)
+}
+
+classify=function(data ){
+  guesses = c()
+  for (datum in data){
+    vectors = util.Counter()
+    for (l in legalLabels){
+      vectors[l] = weights[l] * datum
+      guesses=cbind(guess,(max(vectors)))
+    }
+  return (guesses) 
+  }
+}
+```
+
+## Step 3: final version of function 
+
+```{r}
+#final function
+update.weights=function(data,weights,target)
+{
+pred=which.max(weights%*%t(data.matrix(data)))
+tau=(t(data.matrix(weights[pred,]-weights[target,]))%*%t(data.matrix(data))+1)/(2*sum(data^2))
+if(pred!=target)
+{
+weights[pred,]=as.vector(weights[pred,])-as.vector(unlist(min(tau[1,1],0.008)*data))
+weights[target,]=as.vector(weights[target,])+as.vector(unlist(min(tau[1,1],0.008)*data))
+  
+  
+}
+  
+return(weights)  
+  
+  
+  
+  
+  
+}
+
+predict.mira=function(data,weights)
+{
+ return(apply(weights%*%t(data.matrix(data)),2,which.max)) 
+}
+
+mira=function(x,y,levels=length(unique(y)))
+{
+#y=as.numeric(as.factor(y))
+weights=matrix(rep(1,levels*length(x[1,])),nrow=levels)  
+weights=update.weights(x[1,],weights,y[1])
+pred=predict.mira(x,weights)
+errorid=which(pred!=y)
+diff=1
+while(diff>0 && (length(errorid)!=0))
+{
+weights=update.weights(x[errorid[1],],weights,y[errorid[1]])
+pred=predict.mira(x,weights)
+errorid2=which(pred!=y)
+diff=length(errorid)-length(errorid2)
+errorid=errorid2
+}
+return(weights)               
+}
+```
+
+
+
+## Step 4: Evaluation
+
+Do the similar table to calculate the accrucy.
+
+```{r}
+run=function(){
+  res=c()
+  temp=c("df1.csv","df2.csv","df4.csv","df6.csv","df7.csv","df9.csv","df10.csv","df11.csv","df12.csv")
+  for (i in 1:length(temp)) {
+    df = read.csv(temp[i], header = TRUE)
+    x=df[,-c(1,2)]
+    y=as.numeric(as.factor(df$auther.id))
+    trainid=sample(1:length(y),length(y)/2)
+    trainx=x[trainid,]
+    trainy=y[trainid]
+    testx=x[-trainid,]
+    testy=y[-trainid]
+    weights=mira(trainx,trainy,levels=length(unique(y)))
+    o=predict.mira(testx,weights)
+    res[i]=sum(testy==o)/length(testy)
+    cat(i)
+    cat(' ')
+  }
+ return (res)
+}
+```
+
