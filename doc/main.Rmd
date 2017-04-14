@@ -13,7 +13,7 @@ This file is currently a template for implementing one of the suggested papers, 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(text2vec, dplyr, qlcMatrix, kernlab, knitr)
 
-setwd("~/Dropbox/Project4_WhoIsWho/doc")
+setwd("C:/Users/yftang/Documents/GitHub/Spr2017-proj4-team-5/doc")
 # here replace it with your own path or manually set it in RStudio
 # to where this rmd file is located
 ```
@@ -23,7 +23,7 @@ setwd("~/Dropbox/Project4_WhoIsWho/doc")
 For each record in the dataset, there are some information we want to extract and store them in a regular form: canonical author id, coauthors, paper title, publication venue title. You may need to find regular matched in the input string vectors by using regex in R. Here is a tutorial for regular expression in R, which might help you <https://rstudio-pubs-static.s3.amazonaws.com/74603_76cd14d5983f47408fdf0b323550b846.html>
 
 ```{r}
-AKumar <- data.frame(scan("~/Dropbox/Project4_WhoIsWho/data/nameset/AKumar.txt",
+AKumar <- data.frame(scan("C:/Users/yftang/Documents/GitHub/Spr2017-proj4-team-5/data/nameset/AKumar.txt",
                           what = list(Coauthor = "", Paper = "", Journal = ""),
                           sep=">", quiet=TRUE),stringsAsFactors=FALSE)
 # This need to be modified for different name set
@@ -72,7 +72,7 @@ vocab <- create_vocabulary(it_train, stopwords = c("a", "an", "the", "in", "on",
 vocab
 ```
 
-Here, we remove pre-defined stopwords, the words like “a”, “the”, “in”, “I”, “you”, “on”, etc, which do not provide much useful information. 
+Here, we remove pre-defined stopwords, the words like “a�?, “the�?, “in�?, “I�?, “you�?, “on�?, etc, which do not provide much useful information. 
 
 Now that we have a vocabulary list, we can construct a document-term matrix.
 ```{r}
