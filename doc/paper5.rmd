@@ -133,6 +133,7 @@ classify=function(data ){
 }
 ```
 
+## Step 3: final version of function 
 
 ```{r}
 #final function
@@ -183,7 +184,7 @@ return(weights)
 
 
 
-## Step 5: Evaluation
+## Step 4: Evaluation
 
 Do the similar table to calculate the accrucy.
 
