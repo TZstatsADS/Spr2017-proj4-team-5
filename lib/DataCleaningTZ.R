@@ -1,22 +1,16 @@
----
-title: "Project 4 data cleaning"
-output: html_notebook
----
-```{r}
+setwd("C:/Users/yftang/Documents/GitHub/Spr2017-proj4-team-5/lib/")
 library(stringr)
-```
 
-```{r}
 data.lib="../data/nameset"
 data.files=list.files(path=data.lib, "*.txt")
 
-data.files
+#data.files
 
 ## remove "*.txt"
 query.list=substring(data.files, 
                      1, nchar(data.files)-4)
 
-query.list
+#query.list
 
 ## add a space
 query.list=paste(substring(query.list, 1, 1), 
@@ -24,19 +18,15 @@ query.list=paste(substring(query.list, 1, 1),
                  substring(query.list, 
                            2, nchar(query.list)),
                  sep=""
-                 )
+)
 
-query.list
 
-```
-
-```{r}
 f.line.proc=function(lin, nam.query="."){
-
+  
   # remove unwanted characters
   char_notallowed <- "\\@#$%^&?" # characters to be removed
   lin.str=str_replace(lin, char_notallowed, "")
-
+  
   # get author id
   lin.str=strsplit(lin.str, "_")[[1]]
   author_id=as.numeric(lin.str[1])
@@ -50,20 +40,20 @@ f.line.proc=function(lin, nam.query="."){
   # get coauthor list
   lin.str=strsplit(lin.str, "<>")[[1]]
   coauthor_list=strsplit(lin.str[1], ";")[[1]]
-
+  
   #print(lin.str)
   for(j in 1:length(coauthor_list)){
-      if(nchar(coauthor_list[j])>0){
-        nam = strsplit(coauthor_list[j], " ")[[1]]
-        if(nchar(nam[1])>0){
-          first.ini=substring(nam[1], 1, 1)
-        }else{
-          first.ini=substring(nam[2], 1, 1)
-        }
+    if(nchar(coauthor_list[j])>0){
+      nam = strsplit(coauthor_list[j], " ")[[1]]
+      if(nchar(nam[1])>0){
+        first.ini=substring(nam[1], 1, 1)
+      }else{
+        first.ini=substring(nam[2], 1, 1)
       }
-      last.name=nam[length(nam)]
-      nam.str = paste(first.ini, last.name)
-      coauthor_list[j]=nam.str
+    }
+    last.name=nam[length(nam)]
+    nam.str = paste(first.ini, last.name)
+    coauthor_list[j]=nam.str
   }
   
   match_ind = charmatch(nam.query, coauthor_list, nomatch=-1)
@@ -86,9 +76,7 @@ f.line.proc=function(lin, nam.query="."){
        paper_title, 
        journal_name)
 }
-```
 
-```{r}
 data_list=list(1:length(data.files))
 
 for(i in 1:length(data.files)){
@@ -98,13 +86,4 @@ for(i in 1:length(data.files)){
   dat=as.list(readLines(paste(data.lib, data.files[i], sep="/")))
   data_list[[i]]=lapply(dat, f.line.proc, nam.query=query.list[i])
   
-  
 }
-
-
-
-```
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).

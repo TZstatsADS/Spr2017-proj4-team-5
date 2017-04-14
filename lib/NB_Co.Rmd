@@ -1,7 +1,7 @@
 ---
 title: "NB_Co"
 author: "yt2547"
-date: "2017å¹<b4>4æœ<88>11æ—<a5>"
+date: "2017/4/11/"
 output:
   word_document: default
   html_document: default
@@ -306,15 +306,14 @@ time_sclust
 
 mean(accuracy)
 sd(accuracy)
-conclusion<-cat("Mean of Accuracy for Nameset ",n," is:",mean(accuracy),"\nSrdDev of Accuracy for Nameset  ",n," is:",sd(accuracy),"\nTime for Nameset  ",n," to process is",time_sclust)
+# conclusion<-cat("Mean of Accuracy for Nameset ",n," is:",mean(accuracy),"\nSrdDev of Accuracy for Nameset  ",n," is:",sd(accuracy),"\nTime for Nameset  ",n," to process is",time_sclust)
+
+conclusion<-data.frame(Nameset=n,mean.accuracy=mean(accuracy),StdDev.accuracy=sd(accuracy))
 return(conclusion)
 }
 
-conclusion<-NULL
+get.info(1)
 
-for(i in 1:length(data.files)){
-conclusion[i]<-get.info(i)
-}
 ```
 
 
