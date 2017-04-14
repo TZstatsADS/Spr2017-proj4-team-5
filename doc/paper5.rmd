@@ -41,6 +41,41 @@ JMartin$PaperID <- rownames(JMartin)
 # final version of data processing
 #similar with NB_CO
 # do not paste here, using same data_list
+data_gather=function(){
+aa=1:14
+for(hh in aa){
+num.paper<-length(data_list[[hh]])
+temp=c("df1.csv","df2.csv","df3.csv","df4.csv","df5.csv","df6.csv","df7.csv","df8.csv","df9.csv","df10.csv","df11.csv","df12.csv","df13.csv","df14.csv")
+
+auther.id<-NULL
+coauther<-NULL
+for(i in 1:num.paper){
+   auther.id[i]<-data_list[[hh]][[i]][[1]]
+   coauther<-unique(c(coauther,data_list[[hh]][[i]][[3]]))
+}
+
+df<-data.frame(auther.id)
+
+num.coauther<-length(coauther)
+
+df<-cbind(auther.id,id_co) 
+
+get.coauther<-function(i){
+     coauthers<-rep(0,num.coauther)
+     for(j in 1:length(data_list[[hh]][[i]][[3]])){
+     coauthers[which(data_list[[hh]][[i]][[3]][j]==coauther)]<- 1
+}
+return(coauthers) 
+}
+id_co<-NULL
+for(i in 1:num.paper){
+  id_co<-rbind(id_co,get.coauther(i))
+}
+colnames(id_co)<-coauther
+df<-cbind(auther.id,id_co) 
+write.csv(df,temp[hh])
+}
+}
 ```
 
 ## Step 2: Clusterwise Scoring Function & Error-driven Online Training & Ranking MIRA
