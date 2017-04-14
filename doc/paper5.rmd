@@ -3,7 +3,7 @@ title: "paper5"
 output: html_document
 ---
 
-# Step 0: Load the packages, specify directories
+## Step 0: Load the packages, specify directories
 
 ```{r}
 #setwd("........")
