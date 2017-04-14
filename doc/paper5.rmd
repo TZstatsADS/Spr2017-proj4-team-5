@@ -2,11 +2,13 @@
 title: "paper5"
 output: html_document
 ---
+## to replicate the algo here, your can use the run function with the data file in .../data/clean
 
 ## Step 0: Load the packages, specify directories
 
 ```{r}
 #setwd("........")
+#clean directory has the df file run by the data_gather function
 ```
 
 ## Step 1: Load and process the data
