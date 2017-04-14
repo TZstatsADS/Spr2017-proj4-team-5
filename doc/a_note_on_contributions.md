@@ -21,4 +21,4 @@ Team members: Arun, Vikas va2298@columbia.edu
 
 Summary: In this project, we do Algorithm implementation and evaluation for Name disambiguation in Author Citations. 
 
-[Contribution Statement] Tang and Jiang are handling with paper 2 Naive Bayse Model. Han and Yu deal with the paper 5 method. All team members approve our work presented in our GitHub repository including this contribution statement.
+[Contribution Statement] Tang and Jiang are handling with paper 2 Naive Bayse Model. Han and Yu deal with the paper 5 method. Vikas Arun worked on data cleaning. All team members approve our work presented in our GitHub repository including this contribution statement.
